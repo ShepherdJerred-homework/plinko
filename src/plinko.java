@@ -15,17 +15,11 @@ public class plinko {
         PrintWriter printWriter = new PrintWriter(outputFile);
 
         String nextLine;
-        String[] nextLineSplit;
-        int currentBoard = 0;
         while (scanner.hasNextLine()) {
             nextLine = scanner.nextLine();
             if (nextLine.equals("0")) {
-                System.out.println("DONE");
                 break;
             }
-
-            currentBoard++;
-            System.out.println("Board: " + currentBoard);
 
             int numberOfLevels = Integer.valueOf(nextLine);
 
@@ -65,23 +59,36 @@ public class plinko {
                 }
             }
 
-            System.out.println(getBestPath(head));
-            printWriter.println(getBestPath(head));
-
-            printWriter.close();
-
+            int bestPath = getBestPath(head, new HashMap<>());
+            System.out.println(bestPath);
+            printWriter.println(bestPath);
         }
+
+        printWriter.close();
     }
 
-    private static int getBestPath(Node n) {
+    private static int getBestPath(Node n, HashMap<Node, Integer> memo) {
         if (n.l == null && n.r == null) {
             return n.value;
         }
 
-        int l = getBestPath(n.l);
-        int r = getBestPath(n.r);
+        int l;
+        if (memo.containsKey(n.l)) {
+            l = memo.get(n.l);
+        } else {
+            l = getBestPath(n.l, memo);
+        }
 
-        return l > r ? n.value + l : n.value + r;
+        int r;
+        if (memo.containsKey(n.r)) {
+            r = memo.get(n.r);
+        } else {
+            r = getBestPath(n.r, memo);
+        }
+
+        int best = l > r ? n.value + l : n.value + r;
+        memo.put(n, best);
+        return best;
     }
 
     public static class Node {
@@ -97,6 +104,23 @@ public class plinko {
             this.rparent = null;
             this.l = null;
             this.r = null;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Node node = (Node) o;
+            return value == node.value &&
+                    Objects.equals(l, node.l) &&
+                    Objects.equals(r, node.r);
+        }
+
+        @Override
+        public int hashCode() {
+            int lValue = l != null ? l.value : 0;
+            int rValue = r != null ? r.value : 0;
+            return 31 * value * lValue * rValue;
         }
 
         public void print() {
